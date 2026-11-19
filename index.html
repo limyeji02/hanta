@@ -1304,6 +1304,16 @@ function fitScreen(s) {
   if (s.dataset.id === 'g-result') { const sc = s.querySelector('[data-rsscroll]'); if (sc) sc.style.height = H + 'px'; root.style.height = H + 'px'; return; }
   if (s.dataset.id === 'g-tap' || s.dataset.id === 'g-mission') { const sc = s.querySelector('[data-tpscroll]'), T = glFocus ? 260 : 368; if (sc) { sc.style.top = T + 'px'; sc.style.height = Math.max(200, H - T - SAB / scale) + 'px'; } return; }
   if (s.dataset.id === 'g-field') { const sc = s.querySelector('[data-fdscroll]'), T = glFocus ? 260 : 368; if (sc) { sc.style.top = T + 'px'; sc.style.height = Math.max(200, H - T - SAB / scale) + 'px'; } return; }
+  if (s.dataset.id === 'intro') { // 소개 스토리: 화면 전체를 줄이지 않고(양옆 빈 공간 방지) 상단 간격과 일러스트만 높이에 맞춰 조정
+    const sh = Math.min(36, Math.max(0, 812 - H)), T = 152 - sh;
+    root.style.transform = ''; root.style.height = Math.min(812, H) + 'px'; s.classList.remove('fit812');
+    const lg = root.querySelector('div[style*="top:58px;height:44px"]'), bars = root.querySelector('div[style*="top:112px"]'), area = root.querySelector('div[style*="top:152px;width:335px"], div[data-isarea]');
+    if (area) area.setAttribute('data-isarea', '1');
+    if (lg) lg.style.top = (58 - sh) + 'px'; if (bars) bars.style.top = (112 - sh) + 'px'; if (area) area.style.top = T + 'px';
+    const k = Math.max(0.5, Math.min(1, (H - 239 - T) / 320));
+    root.querySelectorAll('.is-slide > div:first-child').forEach((e) => { e.style.transformOrigin = '50% 0'; e.style.transform = k < 1 ? 'scale(' + k + ')' : ''; e.style.marginBottom = k < 1 ? (-320 * (1 - k)) + 'px' : ''; });
+    return;
+  }
   if (s.querySelector('[data-scroll]')) return;
   root.style.transform = ''; root.style.transformOrigin = ''; s.classList.remove('fit812');
   if (H >= 811) return;
