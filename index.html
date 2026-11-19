@@ -1517,3 +1517,13 @@ if (/[?&]debug\b/.test(location.search)) addEventListener('load', () => {
   document.body.appendChild(o); run(); setInterval(run, 700);
 });
 </script>
+<script>
+// 팀 서포트: 검색창과 (나의 서포트 / 새 서포트 제안) 카드 영역의 위치를 서로 바꿈
+(function () { const sc = document.getElementById('s-f-support'); if (!sc) return;
+  const box = sc.firstElementChild && sc.firstElementChild.firstElementChild && sc.firstElementChild.firstElementChild.firstElementChild; if (!box) return;
+  const k = box.children, up = '0 -80px', down = '0 230px';
+  for (let i = 0; i <= 20; i++) if (k[i]) k[i].style.translate = up;
+  [53, 54, 55].forEach((i) => { if (k[i]) k[i].style.translate = up; });
+  [39, 56].forEach((i) => { if (k[i]) k[i].style.translate = down; });
+})();
+</script>
