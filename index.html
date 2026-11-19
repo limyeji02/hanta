@@ -1508,4 +1508,12 @@ document.querySelectorAll('[data-qzcard]').forEach((card) => {
   new MutationObserver(() => { if (S.hidden) reset(); }).observe(S, { attributes: true, attributeFilter: ['hidden'] });
   reset();
 })();
+</script><script>
+if (/[?&]debug\b/.test(location.search)) addEventListener('load', () => {
+  const P = (css) => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;left:0;top:0;' + css; document.body.appendChild(d); const v = d.getBoundingClientRect(); d.remove(); return v; };
+  const o = document.createElement('div'); o.style.cssText = 'position:fixed;left:8px;right:8px;top:60px;z-index:99999;background:rgba(0,0,0,.85);color:#B5FD1D;font:12px/1.5 monospace;padding:8px;border:1px solid #B5FD1D;white-space:pre-wrap;pointer-events:none';
+  const run = () => { const vv = window.visualViewport || {}; const fx = P('width:1px;height:1px;bottom:0;top:auto'); const st = P('height:env(safe-area-inset-top,0px);width:1px'), sb = P('height:env(safe-area-inset-bottom,0px);width:1px');
+    o.textContent = ['inner ' + innerWidth + 'x' + innerHeight, 'vv ' + Math.round(vv.width) + 'x' + Math.round(vv.height) + ' offTop ' + vv.offsetTop, 'screen ' + screen.width + 'x' + screen.height + ' avail ' + screen.availHeight, 'clientH ' + document.documentElement.clientHeight, 'fixedBottom ' + fx.bottom, 'safeTop ' + st.height + ' safeBottom ' + sb.height, 'standalone ' + navigator.standalone + ' ' + matchMedia('(display-mode: standalone)').matches, 'scrollY ' + scrollY + ' phoneH ' + (phone && phone.style.height) + ' scale ' + scale, 'dpr ' + devicePixelRatio].join('\n'); };
+  document.body.appendChild(o); run(); setInterval(run, 700);
+});
 </script>
