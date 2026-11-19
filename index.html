@@ -706,8 +706,9 @@ document.querySelectorAll('[data-scroll]').forEach((sc) => {
   const hdr = [...scr.querySelectorAll('div')].find((d) => d.style.zIndex === '5' && d.style.top === '0px' && d.style.overflow === 'hidden' && parseFloat(d.style.height) > 0 && parseFloat(d.style.height) <= 190);
   if (!hdr) return;
   hdr.setAttribute('data-hdr', '1');
+  const hh = parseFloat(hdr.style.height) || 110;  // 헤더 높이만큼 스크롤된 뒤에 숨겨서 위쪽 빈 영역이 보이지 않게
   let last = 0;
-  sc.addEventListener('scroll', () => { const y = sc.scrollTop, dy = y - last; const atEnd = y + sc.clientHeight >= sc.scrollHeight - 4; if (y <= 8) { last = y; hdr.classList.remove('hdr-hide'); return; } if (atEnd) { last = y; return; } if (Math.abs(dy) < 6) return; last = y; hdr.classList.toggle('hdr-hide', dy > 0 && y > 40); }, { passive: true });
+  sc.addEventListener('scroll', () => { const y = sc.scrollTop, dy = y - last; const atEnd = y + sc.clientHeight >= sc.scrollHeight - 4; if (y <= 8) { last = y; hdr.classList.remove('hdr-hide'); return; } if (atEnd) { last = y; return; } if (Math.abs(dy) < 6) return; last = y; hdr.classList.toggle('hdr-hide', dy > 0 && y > hh); }, { passive: true });
 });
 // mouse drag scrolling for desktop viewers
 document.querySelectorAll('[data-scroll],.scr [style*="overflow-x:auto"],#clist').forEach((sc) => {
