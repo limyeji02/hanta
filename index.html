@@ -1742,4 +1742,29 @@ document.addEventListener('input',function(e){var i=e.target;if(i&&i.dataset&&i.
  },true);
 })();
 </script>
+<script>
+(function(){
+ var STEP=313,PAD=16;
+ function setup(id){
+  var scr=document.getElementById(id);if(!scr)return;
+  var sc=[].slice.call(scr.querySelectorAll('div')).filter(function(d){return d.style.overflowX==='auto'&&d.style.width==='375px'&&d.querySelector('[style*="width:303px"][style*="height:200px"]')})[0];
+  if(!sc)return;
+  var cards=[].slice.call(sc.querySelectorAll('div')).filter(function(d){return d.style.width==='303px'&&d.style.height==='200px'&&(d.style.left==='16px'||d.style.left==='329px')});
+  cards.forEach(function(c){c.style.scrollSnapAlign='start'});
+  sc.style.scrollSnapType='x mandatory';sc.style.scrollPaddingLeft=PAD+'px';sc.style.cursor='grab';sc.style.overscrollBehaviorX='contain';
+  var down=false,sx=0,sl=0,moved=false,lastX=0,vx=0,lastT=0;
+  function snap(v){var max=sc.scrollWidth-sc.clientWidth;var i=Math.round((sc.scrollLeft+v*120)/STEP);var to=Math.max(0,Math.min(max,i*STEP));sc.style.scrollSnapType='x mandatory';sc.scrollTo({left:to,behavior:'smooth'})}
+  sc.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse')return;down=true;moved=false;sx=lastX=e.clientX;sl=sc.scrollLeft;vx=0;lastT=performance.now();sc.style.scrollSnapType='none';sc.style.cursor='grabbing'});
+  window.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-sx;if(Math.abs(dx)>5)moved=true;if(!moved)return;var now=performance.now();vx=(lastX-e.clientX)/Math.max(1,now-lastT);lastX=e.clientX;lastT=now;sc.scrollLeft=sl-dx});
+  window.addEventListener('pointerup',function(){if(!down)return;down=false;sc.style.cursor='grab';if(moved)snap(vx);else sc.style.scrollSnapType='x mandatory'});
+  window.addEventListener('click',function(e){if(moved&&sc.contains(e.target)){e.stopPropagation();e.preventDefault();moved=false}},true);
+  // 처음 들어오면 옆 카드가 있다는 걸 살짝 보여주는 모션
+  var nudged=false;
+  function nudge(){if(nudged)return;nudged=true;setTimeout(function(){if(scr.hidden||sc.scrollLeft>0)return;sc.style.scrollSnapType='none';sc.scrollTo({left:56,behavior:'smooth'});setTimeout(function(){sc.scrollTo({left:0,behavior:'smooth'});setTimeout(function(){sc.style.scrollSnapType='x mandatory'},500)},650)},700)}
+  new MutationObserver(function(){if(scr.hidden)nudged=false;else nudge()}).observe(scr,{attributes:true,attributeFilter:['hidden']});
+ }
+ setup('s-my');setup('s-all');
+})();
+</script>
+
 
