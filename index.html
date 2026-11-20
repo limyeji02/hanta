@@ -1625,4 +1625,13 @@ if (/[?&]debug\b/.test(location.search)) addEventListener('load', () => {
   setOpen(false)
  },true);
 })();
+
+(function(){
+ var sc=document.getElementById('s-f-support-ask');if(!sc)return;
+ function reset(){
+  var lb=sc.querySelector('[data-ddlabel]');if(lb){lb.textContent='\uBB38\uC758 \uC720\uD615\uC744 \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.';lb.style.color='rgba(136,136,136,1)';lb.style.fontWeight='400';lb.style.fontSize='12px'}
+  sc.querySelectorAll('[data-ddopt]').forEach(function(x){x.classList.remove('sel');x.style.color='#ECECEE';x.style.fontWeight='500'});
+  var p=sc.querySelector('[data-ddpanel]'),c=sc.querySelector('[data-ddchev]');if(p)p.classList.remove('on');if(c)c.classList.remove('on')}
+ new MutationObserver(reset).observe(sc,{attributes:true,attributeFilter:['hidden']});
+})();
 </script>
