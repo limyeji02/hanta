@@ -841,16 +841,26 @@ document.querySelectorAll('[data-chip]').forEach((b) => b.addEventListener('clic
   if (k === 'vf') { const VO = +i === 2 ? [2, 3, 0, 1] : [0, 1, 2, 3]; scr.querySelectorAll('[data-vfrow]').forEach((r) => { const n = +r.dataset.vfrow; r.style.transform = 'translateY(' + (VO.indexOf(n) - n) * 124 + 'px)'; }); }
 }));
 document.querySelectorAll('[data-chip]').forEach((c) => { const [k, i] = c.dataset.chip.split(':'); if (+i === ({ pos: 0, yr: 1, vf: 0 })[k]) c.dataset.sel = '1'; });
-// 칩 탭 모션: 선택 알약이 칩 사이를 미끄러지듯 이동 (먼저 '주간 인기 선수' 포지션 탭에 적용)
-['pos'].forEach((k) => document.querySelectorAll('.scr').forEach((scr) => {
-  const cs = [...scr.querySelectorAll('[data-chip^="' + k + ':"]')]; if (cs.length < 2) return;
-  const first = cs[0], par = first.parentElement, sel = cs.find((c) => c.dataset.sel === '1') || first;
-  const mk = (l) => { const d = document.createElement('div'); d.setAttribute('data-keepdark', '1'); d.style.cssText = 'position:absolute;left:' + l + 'px;top:' + first.style.top + ';width:' + first.style.width + ';height:' + first.style.height + ';border-radius:10px;pointer-events:none'; return d; };
-  cs.forEach((c) => { const t = mk(parseFloat(c.style.left)); t.style.background = '#2E2E32'; par.insertBefore(t, first); });
-  const pill = mk(parseFloat(first.style.left)); pill.setAttribute('data-pill', k); pill.dataset.x0 = parseFloat(first.style.left); pill.style.background = '#B5FD1D';
-  pill.style.transform = 'translateX(' + (parseFloat(sel.style.left) - parseFloat(first.style.left)) + 'px)'; par.insertBefore(pill, first);
-  cs.forEach((c) => { c.dataset.pilled = '1'; c.setAttribute('data-keepdark', '1'); c.style.background = 'transparent'; c.style.color = c === sel ? '#161616' : 'rgb(130,130,131)'; c.style.transition = 'color .2s ease, transform .18s cubic-bezier(.2,.8,.2,1)'; });
+// 칩 탭 모션: 선택 알약이 칩 사이를 부드럽게 미끄러져 이동 (모든 칩형 탭 공통)
+const PILLG = [['pos', '[data-chip^="pos:"]', '#2E2E32'], ['yr', '[data-chip^="yr:"]', '#2E2E32'], ['vf', '[data-chip^="vf:"]', '#232326'], ['nf', '[data-act^="nf.pick.k"]', '#232326'], ['sf', '[data-act^="sf.pick.k"]', '#232326'], ['pf', '[data-act^="pf.pick.k"]', '#232326'], ['cf', '[data-act^="cf.pick.k"]', '#232326'], ['cs', '[data-act^="cs.pick.k"]', '#232326']];
+const pgeo = (c) => { const t = (c.getAttribute('data-tst') || '') + ';' + (c.getAttribute('style') || ''), g = (n) => { const m = t.match(new RegExp('(?:^|[;\\s])' + n + ':\\s*([\\d.]+)px')); return m ? parseFloat(m[1]) : 0; }, r = t.match(/border-radius:\s*([\d.]+)px/); return { l: g('left'), t: g('top'), w: g('width'), h: g('height'), r: r ? r[1] : 10 }; };
+PILLG.forEach(([k, q, off]) => document.querySelectorAll('.scr').forEach((scr) => {
+  const cs = [...scr.querySelectorAll(q)]; if (cs.length < 2) return;
+  const G = cs.map(pgeo), par = cs[0].parentElement, first = cs[0];
+  const sel = Math.max(0, cs.findIndex((c) => c.dataset.sel === '1'));
+  const mk = (g) => { const d = document.createElement('div'); d.setAttribute('data-keepdark', '1'); d.style.cssText = 'position:absolute;left:' + g.l + 'px;top:' + g.t + 'px;width:' + g.w + 'px;height:' + g.h + 'px;border-radius:' + g.r + 'px;pointer-events:none'; return d; };
+  G.forEach((g) => { const t = mk(g); t.style.background = off; par.insertBefore(t, first); });
+  const pill = mk(G[0]); pill.setAttribute('data-pill', k); pill.dataset.x0 = G[0].l; pill.style.background = '#B5FD1D';
+  pill.style.transform = 'translateX(' + (G[sel].l - G[0].l) + 'px)'; par.insertBefore(pill, first);
+  cs.forEach((c, i) => { c.dataset.pilled = '1'; c.setAttribute('data-keepdark', '1'); if (!c.hasAttribute('data-tst')) { c.style.background = 'transparent'; c.style.color = i === sel ? '#161616' : 'rgb(130,130,131)'; c.style.transition = 'color .2s ease, transform .18s cubic-bezier(.2,.8,.2,1)'; } });
 }));
+function pillSync() {
+  document.querySelectorAll('[data-pill]').forEach((pl) => {
+    const k = pl.dataset.pill; if (!(k in F)) return;
+    const cs = [...pl.closest('.scr').querySelectorAll('[data-act^="' + k + '.pick.k"]')], c = cs[F[k]]; if (!c) return;
+    pl.style.transform = 'translateX(' + (pgeo(c).l - parseFloat(pl.dataset.x0)) + 'px)';
+  });
+}
 
 
 // fandom: 팀 서포트 포인트 참여, 소식/서포트 필터 칩, 응원 팀 소식 댓글
@@ -884,7 +894,7 @@ function fanVals() {
   Object.assign(V, { 'jp.remain': fmt(F.remain), 'jp.spent': fmt(F.spent), 'jp.cur': fmt(cur), 'jp.pct': Math.min(100, Math.floor(cur / 4000)), 'jp.left': fmt(Math.max(0, 400000 - cur)),
     'jp.barW': Math.min(335, Math.round(177 * cur / 245000)), 'jp.resetO': F.spent > 0 ? 1 : 0.45 });
   const fil = (key, n, groups, step) => { const v = F[key], show = groups[v] || null; let slot = 0;
-    for (let k = 0; k < n; k++) { V[key + '.bg.k' + k] = k === v ? 'rgba(22,22,22,1)' : '#FFFFFF'; V[key + '.fg.k' + k] = k === v ? '#FFFFFF' : 'rgba(130,130,131,1)'; }
+    for (let k = 0; k < n; k++) { V[key + '.bg.k' + k] = 'transparent'; V[key + '.fg.k' + k] = k === v ? '#161616' : 'rgb(130,130,131)'; }
     for (let k = 0; k < groups.rows; k++) { const vis = !show || show.indexOf(k) >= 0; V[key + '.ty' + k] = vis ? (slot - k) * step : 0; V[key + '.op' + k] = vis ? 1 : 0; V[key + '.pe' + k] = vis ? 'auto' : 'none'; if (vis) slot++; } };
   fil('nf', 3, { rows: 3, 1: [0, 1], 2: [2] }, 126);
   fil('sf', 4, { rows: 4, 1: [0, 1], 2: [0, 1, 2], 3: [3] }, 178);
@@ -893,7 +903,7 @@ function fanVals() {
   Object.assign(V, { 'cl.count': F.clOn ? '135' : '134', 'cl.hc': F.clOn ? 'rgba(255,92,92,1)' : 'rgba(196,196,196,1)', 'cl.tc': F.clOn ? 'rgba(255,92,92,1)' : 'rgba(136,136,136,1)', 'cl.bg': F.clOn ? 'rgba(255,92,92,0.1)' : 'rgba(246,246,246,1)' });
   { const n = F.cmine.length; Object.assign(V, { 'cc.count': String(32 + n), 'cc.rootH': 1019 }); }
   { const v = F.pf, G = { 1: [0, 1], 2: [3], 3: [2] }; let slot = 0;  // 내 제안 내역 grid filter
-    for (let k = 0; k < 4; k++) { V['pf.bg.k' + k] = k === v ? 'rgba(22,22,22,1)' : '#FFFFFF'; V['pf.fg.k' + k] = k === v ? '#FFFFFF' : 'rgba(130,130,131,1)';
+    for (let k = 0; k < 4; k++) { V['pf.bg.k' + k] = 'transparent'; V['pf.fg.k' + k] = k === v ? '#161616' : 'rgb(130,130,131)';
       const vis = !G[v] || G[v].indexOf(k) >= 0; V['pf.tx' + k] = vis ? ((slot % 2) - (k % 2)) * 178 : 0; V['pf.ty' + k] = vis ? (Math.floor(slot / 2) - Math.floor(k / 2)) * 199 : 0; V['pf.op' + k] = vis ? 1 : 0; V['pf.pe' + k] = vis ? 'auto' : 'none'; if (vis) slot++; } }
   { const P = F.pp;  // 서포트 제안 form
     for (let k = 0; k < 4; k++) { const on = k === P.k; V['pp.ko' + k] = on ? 1 : 0; V['pp.kf' + k] = on ? 'none' : 'grayscale(1) opacity(.55)'; V['pp.kw' + k] = on ? 700 : 600; V['pp.kc' + k] = on ? 'rgba(51,51,51,1)' : 'rgba(102,102,102,1)'; }
@@ -912,7 +922,7 @@ function fanRender() {
   document.querySelectorAll('[data-tst]').forEach((e) => { const v = fill(e.dataset.tst, V); if (e.getAttribute('style') !== v) e.setAttribute('style', v); });
   document.querySelectorAll('[data-ta-height],[data-ta-width],[data-ta-d]').forEach((e) => { for (const a of ['height', 'width', 'd']) { const t = e.getAttribute('data-ta-' + a); if (t != null) e.setAttribute(a, fill(t, V)); } });
   document.querySelectorAll('[data-txt]').forEach((e) => { const v = String(V[e.dataset.txt]); if (e.textContent !== v) e.textContent = v; });
-  cmRender();
+  cmRender(); pillSync();
 }
 // 보유 포인트: leaving the support-join flow puts points back to the original values
 const JPKEEP = { 'f-support-post': 1, 'f-support-join': 1, 'f-join-done': 1, 'f-support-ask': 1, 'f-ask-done': 1 };
