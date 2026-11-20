@@ -1255,7 +1255,7 @@ document.querySelectorAll('[data-ncform]').forEach((f) => f.addEventListener('su
   P.host.appendChild(c);return c}
  function clear(k){var P=parts(k);delete T[k];if(!P)return;var c=P.host.querySelector('[data-rchip]');if(c)c.hidden=true;P.input.placeholder=P.ph.indexOf('@')===0?'따뜻한 댓글을 남겨주세요!':P.ph;if(P.list)P.list.style.height='428px'}
  function start(k,i,who){var P=parts(k);if(!P)return;if(k==='player'&&typeof editing!=='undefined'&&editing>=0)return;T[k]={i:i,to:who};var c=chipOf(P);c.querySelector('[data-rtxt]').textContent='@'+who+' 님에게 답글 남기는 중';c.hidden=false;P.input.value='';P.input.placeholder='@'+who+' 님에게 답글 남기기';if(P.list)P.list.style.height='394px';setTimeout(function(){P.input.focus()},0)}
- document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;var tg0=t.closest('[data-cmtog]');if(tg0){e.stopPropagation();EXP[tg0.getAttribute('data-cmtog')]=!EXP[tg0.getAttribute('data-cmtog')];fanRender();return}var r=t.closest('[data-cmreply]');
+ document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;if(t.closest('[data-cmact="edit"],[data-cmact="del"]'))clear('player');var tg0=t.closest('[data-cmtog]');if(tg0){e.stopPropagation();EXP[tg0.getAttribute('data-cmtog')]=!EXP[tg0.getAttribute('data-cmtog')];fanRender();return}var r=t.closest('[data-cmreply]');
   if(r){var a=r.getAttribute('data-cmreply').split('|');e.stopPropagation();start(a[0],+a[1],a.slice(2).join('|'));return}
   var x=t.closest('[data-rcancel]');if(x){e.stopPropagation();Object.keys(CFG).forEach(function(k){var P=parts(k);if(P&&P.host.contains(x))clear(k)})}},true);
  Object.keys(CFG).forEach(function(k){var P=parts(k);if(!P)return;
