@@ -635,8 +635,8 @@ function show(id, how) {
     const fin = () => { prev.hidden = true; prev.style.zIndex = ''; next.style.zIndex = ''; done(); };
     if (isSheet(was)) { // sheet slides down (or modal sinks), dim fades out
       const sh = prev.querySelector('[data-psheet]'), dm = prev.querySelector('[data-pdim]');
-      const f2 = () => { sh.style.transform = ''; sh.style.transition = ''; fin(); };
-      anim(dm, 'fade-out'); anim(sh, sh.dataset.psheet === 'modal' ? 'pop-out' : 'out-dn', f2); return;
+      const f2 = () => { sh.style.transform = ''; sh.style.transition = ''; fin(); dm.style.opacity = ''; };
+      anim(dm, 'fade-out', () => { dm.style.opacity = '0'; }); anim(sh, sh.dataset.psheet === 'modal' ? 'pop-out' : 'out-dn', f2); return;
     }
     anim(prev, M.POP[was] ? 'fade-out' : 'out-r', fin);
     return;
