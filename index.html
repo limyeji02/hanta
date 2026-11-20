@@ -982,7 +982,7 @@ function fanVals() {
   fil('sf', 4, { rows: 4, 1: [0, 1], 2: [0, 1, 2], 3: [3] }, 178);
   fil('cf', 4, { rows: 3, 1: [0], 2: [1], 3: [2] }, 145);  // 커뮤니티 한타 게시글
   fil('cs', 4, { rows: 3, 1: [0], 2: [1], 3: [2] }, 145);  // 커뮤니티 모든 게시글
-  Object.assign(V, { 'cl.count': F.clOn ? '135' : '134', 'cl.hc': F.clOn ? 'rgba(255,92,92,1)' : 'rgba(196,196,196,1)', 'cl.tc': F.clOn ? 'rgba(255,92,92,1)' : 'rgba(136,136,136,1)', 'cl.bg': F.clOn ? 'rgba(255,92,92,0.1)' : 'rgba(246,246,246,1)' });
+  Object.assign(V, { 'cl.count': F.clOn ? '135' : '134', 'cl.hc': F.clOn ? '#161616' : '#888888', 'cl.tc': F.clOn ? '#161616' : '#B4B4B9', 'cl.bg': F.clOn ? '#B5FD1D' : '#2E2E32' });
   { const n = F.cmine.length; Object.assign(V, { 'cc.count': String(32 + n), 'cc.rootH': 1019 }); }
   { const v = F.pf, G = { 1: [0, 1], 2: [3], 3: [2] }; let slot = 0;  // 내 제안 내역 grid filter
     for (let k = 0; k < 4; k++) { V['pf.bg.k' + k] = 'transparent'; V['pf.fg.k' + k] = k === v ? '#161616' : 'rgb(130,130,131)';
