@@ -951,7 +951,7 @@ const AVME = "img/b9fe849eced3bb11db2d8db79047c4618b2ad614.webp";
 const cmAv = (a, s) => '<div style="flex:none;width:' + s + 'px;height:' + s + 'px;border-radius:50%;overflow:hidden"><img src="' + a + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>';
 const cmHead = (c) => '<div style="display:flex;gap:6px;align-items:baseline;height:17px;line-height:17px"><b style="font-size:14px;font-weight:700;color:#ECECEE;white-space:nowrap">' + c.n + '</b><span style="font-size:12px;color:#888888;white-space:nowrap">' + c.m + '</span></div>';
 const cmPrev = (c, fr) => '<div style="display:flex;gap:8px;height:36px;' + (fr ? 'animation:fd .35s ease' : '') + '">' + cmAv(c.a, 32) + '<div style="min-width:0;flex:1">' + cmHead(c) + '<div style="margin-top:3px;font-size:13px;line-height:16px;color:#B4B4B9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + c.t.replace(/^@\S+ /, '') + '</div></div></div>';
-const RP = (() => { try { return JSON.parse(localStorage.getItem('cm-replies-v1') || '{}'); } catch (e) { return {}; } })();
+const RP = {};  // 답글은 저장하지 않음: 시트를 나가면 사라짐 (전시용)
 const PC_BASE = [{"n": "티원은영원해", "t": "좋은 풍경 보고 맛있는 거 먹으면서 늘 행복만 가득하길!", "m": "5분 전", "a": "img/0824c21f5b6bde5a5b5662b8972ea124c0e28baa.webp", "r": [{"n": "예모닥", "t": "저도 이런 풍경 보면 힐링돼요 🥹", "m": "2분 전", "a": "img/a42761e84a2501f9127f62ab14a218a13ad807b4.webp", "to": "티원은영원해"}]}, {"n": "페이커바라기", "t": "상횩쿤 드뎌 오늘 홈그 보네용 오랜만에 갑니당 🥹", "m": "8분 전", "a": "img/0434c4e0cb2006eca7bde6db88d5b08588104249.webp"}, {"n": "제발풀세트는", "t": "대.상.혁", "m": "10분 전", "a": "img/b358424a70bcc12800f1bff09adbf872f92fe411.webp"}, {"n": "상혁이의주먹밥", "t": "이 정도면 따봉 증후군이 아니실지", "m": "14분 전", "a": "img/571cab7127049f4597b1b417f3218da250b10997.webp"}, {"n": "말랑콩떡", "t": "따봉상혁햄 고마워", "m": "24분 전", "a": "img/337f07c2df8eeb82a685e9fd1755fa90e31c1246.webp"}, {"n": "집가는중이에요", "t": "따봉상혁햄 고마워", "m": "32분 전", "a": "img/2c64aee2d97fff349576479b18bf696996f53228.webp"}, {"n": "졸린감자", "t": "아니 형 사랑해", "m": "45분 전", "a": "img/fecb0ebbd06f83cca511632e25b419b279a93051.webp"}];
 const EXP = {};
 const cmAct = (k, i, who, nr) => '<div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12px;line-height:14px;color:#888888"><b data-cmreply="' + k + '|' + i + '|' + who + '" style="font-weight:600;cursor:pointer">답글달기</b>' + (nr ? '<i style="width:1px;height:8px;background:#444449"></i><b data-cmtog="' + k + '|' + i + '" style="font-weight:600;cursor:pointer;color:#B4B4B9">답글 ' + nr + '개 ' + (EXP[k + '|' + i] ? '▴' : '▾') + '</b>' : '') + '</div>';
@@ -1262,9 +1262,9 @@ document.querySelectorAll('[data-ncform]').forEach((f) => f.addEventListener('su
   P.form.addEventListener('submit',function(e){var tg=T[k];if(!tg)return;if(k==='player'&&typeof editing!=='undefined'&&editing>=0)return;var text=P.input.value.trim();if(!text)return;
    e.preventDefault();e.stopImmediatePropagation();
    (RP[k]=RP[k]||{});(RP[k][tg.i]=RP[k][tg.i]||[]).push({n:'열정바위게',a:AVME,t:text,to:tg.to,me:1,t0:Date.now()});
-   try{localStorage.setItem('cm-replies-v1',JSON.stringify(RP))}catch(err){}
+   
    EXP[k+'|'+tg.i]=true;P.input.value='';clear(k);fanRender()},true);
-  new MutationObserver(function(){if(P.sc.hidden)clear(k)}).observe(P.sc,{attributes:true,attributeFilter:['hidden']})});
+  new MutationObserver(function(){if(P.sc.hidden){clear(k);if(RP[k]){delete RP[k];Object.keys(EXP).forEach(function(x){if(x.indexOf(k+'|')===0)delete EXP[x]});fanRender()}}}).observe(P.sc,{attributes:true,attributeFilter:['hidden']})});
  fanRender();
 })();
 fanRender();
