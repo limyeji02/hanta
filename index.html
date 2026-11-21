@@ -1804,6 +1804,6 @@ document.addEventListener('input',function(e){var i=e.target;if(i&&i.dataset&&i.
 
 <script>
 (function(){var C={t1:2480,gen:2040};function paint(){var tot=C.t1+C.gen,p=Math.round(C.t1/tot*100);document.querySelectorAll('[data-gcd]').forEach(function(e){e.textContent=Math.abs(C.t1-C.gen).toLocaleString('en-US')+'명';});document.querySelectorAll('[data-gcp]').forEach(function(e){e.textContent=(e.getAttribute('data-gcp')==='t1'?p:100-p)+'%';});document.querySelectorAll('[data-gc]').forEach(function(e){e.textContent=C[e.getAttribute('data-gc')].toLocaleString('en-US');});}
-function tick(){if(!document.hidden){var k=Math.random()<.58?'t1':'gen';C[k]+=1+Math.floor(Math.random()*3);paint();}setTimeout(tick,1400+Math.random()*2200);}
+function tick(){if(!document.hidden){var k=Math.random()<.58?'t1':'gen';C[k]+=1+Math.floor(Math.random()*3);if(C.t1>=3000||C.gen>=3000){C.t1=2480;C.gen=2040;}paint();}setTimeout(tick,1400+Math.random()*2200);}
 setTimeout(tick,2000);})();
 </script>
