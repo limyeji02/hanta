@@ -1293,16 +1293,17 @@ function fit() {
     // 키보드가 열려 있으면 포커스된 입력칸이 키보드 위에 보이도록 전체를 위로 이동
     const app = document.querySelector('.app'), ae = document.activeElement, kb = baseH - vvh;
     if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
-      app.style.transition = 'none';
-      app.style.transform = '';
-      void app.offsetHeight;
+      /* 현재 이동량을 포함해 원래 위치를 역산 → 목표가 달라질 때만 한 번에 이동 (띠용 방지) */
+      let curY = 0; try { const t = getComputedStyle(app).transform; if (t && t !== 'none') curY = new DOMMatrix(t).m42; } catch (e) {}
       const r = ae.getBoundingClientRect();
-      app.style.transition = 'transform .22s ease';
-      /* 키보드 높이를 알면 그 바로 위까지, 모르면 화면 절반 위로 */
+      const trueBottom = r.bottom - curY;
       const limit = kb >= 140 ? (vvh - 16) : Math.round(vvh * 0.5);
-      const lift = Math.max(0, Math.ceil(r.bottom - limit));
-      app.style.transform = lift ? 'translateY(-' + lift + 'px)' : '';
-    } else { app.style.transform = ''; }
+      const lift = Math.max(0, Math.ceil(trueBottom - limit));
+      if (Math.abs(lift + curY) > 3 || (lift === 0 && curY !== 0)) {
+        app.style.transition = 'transform .22s ease';
+        app.style.transform = lift ? 'translateY(-' + lift + 'px)' : '';
+      }
+    } else if (app.style.transform) { app.style.transform = ''; }
   }
   const availH = vh - (narrow ? 0 : 90), availW = narrow ? innerWidth : innerWidth - 360;
   scale = narrow ? innerWidth / 375 : Math.min(1, availH / 812, availW / 375);
