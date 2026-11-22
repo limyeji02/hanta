@@ -1279,9 +1279,16 @@ fanRender();
 setInterval(() => { if (cur === 'f-news-post') fanRender(); }, 60000);
 
 let scale = 1;
+let baseW = 0, baseH = 0;
 function fit() {
   const narrow = innerWidth <= 720;
-  const vh = (window.visualViewport && visualViewport.height) || innerHeight;
+  const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
+  let vh = vvh;
+  if (narrow) {
+    if (innerWidth !== baseW || baseH === 0) { baseW = innerWidth; baseH = vvh; }
+    else if (baseH - vvh < 140) { baseH = vvh; }
+    vh = baseH; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
+  }
   const availH = vh - (narrow ? 0 : 90), availW = narrow ? innerWidth : innerWidth - 360;
   scale = narrow ? innerWidth / 375 : Math.min(1, availH / 812, availW / 375);
   phone.style.transform = 'scale(' + scale + ')'; phone.style.setProperty('--sc', scale); stage.style.width = 375 * scale + 'px';
@@ -1601,7 +1608,7 @@ document.querySelectorAll('[data-gmstrip]').forEach((strip) => {
   layer.querySelectorAll('[data-gmc]').forEach((c) => c.addEventListener('click', () => { if (!c._d) return; sel = new Date(vY, vM, c._d); setOpen(false); }));
   paint();
 });
-addEventListener('resize', function(){ if(innerWidth<=720 && document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return; fit(); }); addEventListener('focusout', function(){ setTimeout(fit, 80); }); fit();
+addEventListener('resize', function(){ if(innerWidth<=720 && document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) return; fit(); }); addEventListener('focusout', function(){ setTimeout(fit, 80); }); addEventListener('focusin', function(){ if(innerWidth<=720){ setTimeout(function(){scrollTo(0,0)},60); setTimeout(function(){scrollTo(0,0)},350);} }); fit();
 const start = location.hash.slice(1);
 if (start && el(start)) { stack = (M.JSTACK[start] || []).slice(); sideSec = M.SEC[start]; show(start); } else { sideSec = 'splash'; show('launch'); }
 renderList();
