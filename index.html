@@ -1548,7 +1548,7 @@ if (window.visualViewport) { visualViewport.addEventListener('resize', fit); vis
   const mo = new MutationObserver(function (ms) {
     ms.forEach(function (m) {
       const s = m.target;
-      if (s.classList && s.classList.contains('scr') && !s.hidden) requestAnimationFrame(function () { try { fitScreen(s); } catch (e) {} });
+      if (s.classList && s.classList.contains('scr') && !s.hidden) { try { fitScreen(s); } catch (e) {} }
     });
   });
   document.querySelectorAll('.scr').forEach(function (s) { mo.observe(s, { attributes: true, attributeFilter: ['hidden'] }); });
