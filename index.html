@@ -1489,8 +1489,8 @@ function fitScreen(s) {
     return;
   }
   const ps = s.querySelector('[data-psheet]');
-  if (ps) { // 바텀시트: 축소/이동 대신 시트 하단을 화면 바닥에 고정
-    const dy = H - 812;
+  if (ps) { // 바텀시트: 축소/이동 대신 시트 하단을 화면 바닥(안전영역 위)에 고정
+    const dy = H - 812 - Math.round(SAB / scale);
     ps.style.transform = dy ? 'translateY(' + dy + 'px)' : '';
     const dim = s.querySelector('[data-pdim]');
     if (dim) { if (H > 812) { dim.style.transform = 'scaleY(' + (H / 812) + ')'; dim.style.transformOrigin = '0 0'; } else dim.style.transform = ''; }
