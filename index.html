@@ -1476,7 +1476,19 @@ function trimBottom(s) {
   if (c.dataset.th === undefined || c.style.height !== c.dataset.th + 'px') c.dataset.h0 = parseFloat(c.style.height) || c.offsetHeight;
   const h0 = parseFloat(c.dataset.h0); if (!h0) return; c.style.height = h0 + 'px';
   const cr = c.getBoundingClientRect(), k = cr.height / h0 || 1; let mb = 0;
-  c.querySelectorAll('*').forEach((e) => { if (!(e instanceof HTMLElement) || !e.offsetHeight || e.offsetHeight >= h0 - 1) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return; const b = (e.getBoundingClientRect().bottom - cr.top) / k; if (b > mb) mb = b; });
+  c.querySelectorAll('*').forEach((e) => {
+    if (!(e instanceof HTMLElement) || !e.offsetHeight || e.offsetHeight >= h0 - 1) return;
+    const cs = getComputedStyle(e);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return;
+    /* 실제로 그려지는 요소만 하단 기준으로 인정 (투명 래퍼 제외) */
+    let paints = e.tagName === 'IMG' || e.tagName === 'VIDEO' ||
+      (cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent') ||
+      cs.backgroundImage !== 'none' || cs.boxShadow !== 'none' ||
+      parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderBottomWidth) > 0;
+    if (!paints) { for (const n of e.childNodes) { if ((n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && (n.tagName === 'svg' || n.tagName === 'IMG'))) { paints = true; break; } } }
+    if (!paints) return;
+    const b = (e.getBoundingClientRect().bottom - cr.top) / k; if (b > mb) mb = b;
+  });
   /* 모든 화면 하단 남는 여백 통일: 콘텐츠 끝 + 2px (+ 스크롤 패딩 20px = 총 22px) */
   const nh = Math.ceil(mb + 2); if (mb > 400 && Math.abs(h0 - nh) <= 260) c.style.height = nh + 'px';
   c.dataset.th = parseFloat(c.style.height); sc.style.paddingBottom = Math.max(20, Math.round(SAB / scale + 8)) + 'px';
