@@ -1468,20 +1468,21 @@ function _darkify0(scr) {
   if (scr.__dkmo) scr.__dkmo.takeRecords();
 }
 // 스크롤 화면 하단 잉여 영역 제거: 마지막 콘텐츠 아래 12px + 하단 안전영역까지만 남김
-const TRIM_SKIP = new Set(['home', 'g-plaza', 'g-live', 'g-result', 'g-tap', 'g-mission', 'g-field', 'me-gather']);
+const TRIM_SKIP = new Set(['g-plaza', 'g-live', 'g-result', 'g-tap', 'g-mission', 'g-field', 'me-gather']);
 function trimBottom(s) {
   const id = s.dataset.id; if (TRIM_SKIP.has(id)) return;
   const outer = s.firstElementChild; if (!outer) return;
-  const sc = [...outer.children].find((e) => e.style.overflowY === 'auto'); const c = sc && sc.firstElementChild; if (!c) return;
+  const sc = [...outer.children].find((e) => e.style.overflowY === 'auto'); const c = sc && [...sc.children].find((e) => e.tagName === 'DIV'); if (!c) return;
   if (c.dataset.th === undefined || c.style.height !== c.dataset.th + 'px') c.dataset.h0 = parseFloat(c.style.height) || c.offsetHeight;
   const h0 = parseFloat(c.dataset.h0); if (!h0) return; c.style.height = h0 + 'px';
   const cr = c.getBoundingClientRect(), k = cr.height / h0 || 1; let mb = 0;
-  [...c.children].forEach((e) => { if (!(e instanceof HTMLElement) || !e.offsetHeight || e.offsetHeight >= h0 - 1) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return; const b = (e.getBoundingClientRect().top - cr.top) / k + Math.max(e.offsetHeight, e.scrollHeight); if (b > mb) mb = b; });
-  const nh = Math.ceil(mb + 12); if (mb > 0 && nh < h0 && h0 - mb <= 200) c.style.height = nh + 'px';
+  c.querySelectorAll('*').forEach((e) => { if (!(e instanceof HTMLElement) || !e.offsetHeight || e.offsetHeight >= h0 - 1) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return; const b = (e.getBoundingClientRect().bottom - cr.top) / k; if (b > mb) mb = b; });
+  /* 모든 화면 하단 남는 여백 통일: 콘텐츠 끝 + 2px (+ 스크롤 패딩 20px = 총 22px) */
+  const nh = Math.ceil(mb + 2); if (mb > 400 && Math.abs(h0 - nh) <= 260) c.style.height = nh + 'px';
   c.dataset.th = parseFloat(c.style.height); sc.style.paddingBottom = Math.max(20, Math.round(SAB / scale + 8)) + 'px';
 }
 function fitScreen(s) {
-  if (!s || s.hidden) return; try { trimBottom(s); } catch (e) {} try { if (!s.dataset.dk) darkify(s); } catch (e) { console.error(e); } const root = s.firstElementChild; if (!root) return;
+  if (!s || s.hidden) return; try { trimBottom(s); clearTimeout(s.__tb); s.__tb = setTimeout(function () { if (!s.hidden) { try { trimBottom(s); } catch (e) {} } }, 520); } catch (e) {} try { if (!s.dataset.dk) darkify(s); } catch (e) { console.error(e); } const root = s.firstElementChild; if (!root) return;
   const H = phoneH();
   if (/^(terms|pick-profile|pick-team)$/.test(s.dataset.id)) { // 온보딩 폼: 화면 높이에 맞춰 줄이되 가로는 꽉 채움
     root.style.transform = ''; root.style.width = '375px'; root.style.setProperty('height', '0px', 'important');
