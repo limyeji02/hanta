@@ -1287,7 +1287,9 @@ function fit() {
   if (narrow) {
     if (innerWidth !== baseW || baseH === 0) { baseW = innerWidth; baseH = vvh; }
     else if (baseH - vvh < 140) { baseH = vvh; }
-    vh = baseH; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
+    /* 아티팩트 틀이 html에 넣는 상태바 여백(padding-top)만큼 쓸 수 있는 높이가 줄어듦 */
+    const padT = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0;
+    vh = baseH - padT; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
     // 키보드가 열려 있으면 포커스된 입력칸이 키보드 위에 보이도록 전체를 위로 이동
     const app = document.querySelector('.app'), ae = document.activeElement, kb = baseH - vvh;
     if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
