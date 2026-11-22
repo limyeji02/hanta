@@ -1287,9 +1287,16 @@ function fit() {
   if (narrow) {
     if (innerWidth !== baseW || baseH === 0) { baseW = innerWidth; baseH = vvh; }
     else if (baseH - vvh < 140) { baseH = vvh; }
-    /* 아티팩트 틀이 html에 넣는 상태바 여백(padding-top)만큼 쓸 수 있는 높이가 줄어듦 */
-    const padT = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0;
-    vh = baseH - padT; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
+    /* 상태바·인앱 브라우저 등 어떤 이유로든 생기는 상단 오프셋을 '실측'해서 뺀다
+       (키보드 리프트 transform은 역산해 제외) */
+    let topOff = 0;
+    try {
+      const aEl = document.querySelector('.app');
+      let cY = 0; const tt = getComputedStyle(aEl).transform;
+      if (tt && tt !== 'none') cY = new DOMMatrix(tt).m42;
+      topOff = Math.max(0, Math.round(aEl.getBoundingClientRect().top - cY - (window.visualViewport ? visualViewport.offsetTop : 0)));
+    } catch (e) { topOff = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0; }
+    vh = baseH - topOff; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
     // 키보드가 열려 있으면 포커스된 입력칸이 키보드 위에 보이도록 전체를 위로 이동
     const app = document.querySelector('.app'), ae = document.activeElement, kb = baseH - vvh;
     if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
