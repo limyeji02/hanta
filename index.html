@@ -1543,6 +1543,16 @@ function gpLayout(s) {
   s.firstElementChild.style.height = '';
 }
 if (window.visualViewport) { visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', () => { if (innerWidth <= 720 && window.scrollY) window.scrollTo(0, 0); }); }
+// 화면(.scr)이 표시되는 순간마다 그 화면의 레이아웃 보정을 보장 (바텀시트가 처음 열릴 때 등)
+(function () {
+  const mo = new MutationObserver(function (ms) {
+    ms.forEach(function (m) {
+      const s = m.target;
+      if (s.classList && s.classList.contains('scr') && !s.hidden) requestAnimationFrame(function () { try { fitScreen(s); } catch (e) {} });
+    });
+  });
+  document.querySelectorAll('.scr').forEach(function (s) { mo.observe(s, { attributes: true, attributeFilter: ['hidden'] }); });
+})();
 // 일부 인앱 브라우저는 로드 후 뷰포트가 늦게 확정되는데 resize 이벤트를 주지 않는다.
 // → 보조 이벤트 + 상시 감시로 계산값과 실제 뷰포트가 어긋나면 즉시 재계산 (키보드 열림 중은 제외)
 ['pageshow', 'orientationchange', 'visibilitychange'].forEach(function (ev) { addEventListener(ev, function () { setTimeout(fit, 60); }); });
