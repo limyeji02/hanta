@@ -931,11 +931,11 @@ function pillSwap(id) {
     const h = sc.querySelector('[data-plh]'), tx = sc.querySelector('[data-plt]'), w = sc.querySelector('[data-plhw]');
     h.style.fill = on ? 'rgb(181, 253, 29)' : 'rgba(255,255,255,.55)'; h.style.transition = 'fill .2s ease'; tx.textContent = on ? '12.5만' : '12.4만'; bt.setAttribute('aria-pressed', on);
     w.classList.remove('lk-pop'); void w.offsetWidth; if (on) w.classList.add('lk-pop'); }); }
-function mqRun(scr) { scr.querySelectorAll('.mq-card').forEach((c, i) => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = 'mqRise .55s cubic-bezier(.2,.8,.2,1) both'; c.style.animationDelay = (0.06 + i * 0.12) + 's'; }); }
+function mqRun(scr) { scr.querySelectorAll('.mq-card').forEach((c) => { c.style.animation = 'none'; c.style.animationDelay = ''; c.style.opacity = '1'; }); }
 function sfRun() {
   const scr = document.getElementById('s-f-support-list'); if (!scr) return;
   const G = { 1: [0, 1], 2: [0, 1, 2], 3: [3] }, show = G[F.sf] || [0, 1, 2, 3]; let slot = 0;
-  scr.querySelectorAll('[data-tst*="sf.ty"]').forEach((el) => { const k = +el.dataset.tst.match(/sf\.ty(\d)/)[1]; el.classList.remove('sf-in'); if (show.indexOf(k) >= 0) { el.dataset.d = slot++; void el.offsetWidth; el.classList.add('sf-in'); } });
+  scr.querySelectorAll('[data-tst*="sf.ty"]').forEach((el) => { const k = +el.dataset.tst.match(/sf\.ty(\d)/)[1]; el.classList.remove('sf-in'); if (show.indexOf(k) >= 0) { el.dataset.d = slot++; } });
 }
 function pillSync() {
   document.querySelectorAll('[data-pill]').forEach((pl) => {
