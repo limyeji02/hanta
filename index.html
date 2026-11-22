@@ -1479,6 +1479,26 @@ function fitScreen(s) {
     root.querySelectorAll('.is-slide > div:first-child').forEach((e) => { e.style.transformOrigin = '50% 0'; e.style.transform = k < 1 ? 'scale(' + k + ')' : ''; e.style.marginBottom = k < 1 ? (-320 * (1 - k)) + 'px' : ''; });
     return;
   }
+  const ps = s.querySelector('[data-psheet]');
+  if (ps) { // 바텀시트: 축소/이동 대신 시트 하단을 화면 바닥에 고정
+    const dy = H - 812;
+    ps.style.transform = dy ? 'translateY(' + dy + 'px)' : '';
+    const dim = s.querySelector('[data-pdim]');
+    if (dim) { if (H > 812) { dim.style.transform = 'scaleY(' + (H / 812) + ')'; dim.style.transformOrigin = '0 0'; } else dim.style.transform = ''; }
+    if (!s.querySelector('[data-scroll]')) { root.style.transform = ''; root.style.transformOrigin = ''; s.classList.remove('fit812'); return; }
+  }
+  if (s.dataset.id === 'story') { // 스토리: 전체 축소 금지(양옆 여백 방지), 사진은 꽉 채우고 하단 요소만 바닥에 붙임
+    root.style.transform = ''; root.style.transformOrigin = ''; s.classList.remove('fit812');
+    const dy = H - 812, HH = Math.max(812, H);
+    [...root.children].forEach((e) => {
+      if (!(e instanceof HTMLElement)) return;
+      const st = e.getAttribute('style') || '';
+      if (st.indexOf('width:431px') > -1) { e.style.height = HH + 'px'; if (e.firstElementChild) e.firstElementChild.style.height = HH + 'px'; return; }
+      const m = st.match(/top:([\d.]+)px/);
+      if (m && parseFloat(m[1]) >= 500) e.style.transform = dy ? 'translateY(' + dy + 'px)' : '';
+    });
+    return;
+  }
   if (s.querySelector('[data-scroll]')) return;
   root.style.transform = ''; root.style.transformOrigin = ''; s.classList.remove('fit812');
   if (H >= 811) return;
