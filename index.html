@@ -1543,6 +1543,18 @@ function gpLayout(s) {
   s.firstElementChild.style.height = '';
 }
 if (window.visualViewport) { visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', () => { if (innerWidth <= 720 && window.scrollY) window.scrollTo(0, 0); }); }
+// 일부 인앱 브라우저는 로드 후 뷰포트가 늦게 확정되는데 resize 이벤트를 주지 않는다.
+// → 보조 이벤트 + 상시 감시로 계산값과 실제 뷰포트가 어긋나면 즉시 재계산 (키보드 열림 중은 제외)
+['pageshow', 'orientationchange', 'visibilitychange'].forEach(function (ev) { addEventListener(ev, function () { setTimeout(fit, 60); }); });
+setInterval(function () {
+  if (innerWidth > 720) return;
+  const ae = document.activeElement;
+  if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) return;
+  const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
+  let topOff = 0;
+  try { topOff = Math.max(0, Math.round(document.querySelector('.app').getBoundingClientRect().top - (window.visualViewport ? visualViewport.offsetTop : 0))); } catch (e) {}
+  if (Math.abs((vvh - topOff) - phoneH() * scale) > 3) fit();
+}, 600);
 // match countdown: 02:35:10 -> 02:00:00, then back to 02:35:10 (one shared clock for every screen)
 const cdStart = Date.now(), p2 = (n) => String(n).padStart(2, '0');
 function tickCd() {
