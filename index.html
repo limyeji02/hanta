@@ -1622,7 +1622,8 @@ function fitScreen(s) {
   const ps = s.querySelector('[data-psheet]');
   if (ps) { // 바텀시트: 축소/이동 대신 시트 하단을 화면 바닥(안전영역 위)에 고정
     const dy = H - 812 - Math.round(SAB / scale);
-    ps.style.transform = dy ? 'translateY(' + dy + 'px)' : '';
+    /* 바닥 맞춤은 위치(top)로 — 올라오는 애니메이션·끌어내리기(transform)와 겹치지 않아 처음부터 바닥에서 나옴 */
+    ps.style.transform = ''; ps.style.top = dy + 'px';
     growFrame(s, [ps]);
     /* 바닥 기준(bottom:0) 시트는 틀이 늘어난 만큼 되돌려 화면 바닥(안전영역 위)에 맞춤 */
     [...ps.children].forEach((c) => { const st = c.getAttribute('style') || ''; if (c.__bAnch === undefined) c.__bAnch = /(^|;)\s*bottom:\s*0(px)?\s*(;|$)/.test(st) && !/(^|;)\s*top:/.test(st); if (c.__bAnch) c.style.bottom = Math.max(0, H - 812) + 'px'; });
