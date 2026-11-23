@@ -729,7 +729,7 @@ function back() { const p = stack.pop(); if (p) show(p, 'back'); }
   const arm = () => { try { while (depth < 2) history.pushState({ hanta: ++depth }, ''); } catch (e) {} };
   ['click', 'touchend', 'keydown'].forEach((ev) => addEventListener(ev, arm, true));
   addEventListener('popstate', () => { window.__popT = Date.now(); depth = Math.max(0, depth - 1);
-    const ae = document.activeElement; if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { try { ae.blur(); } catch (e) {} const app = document.querySelector('.app'); if (app) app.style.transform = ''; }
+    const ae = document.activeElement; if (ae && isTF(ae)) { try { ae.blur(); } catch (e) {} const app = document.querySelector('.app'); if (app) app.style.transform = ''; }
     if (!busy && stack.length) { try { back(); } catch (e) {} }
     setTimeout(() => { try { history.replaceState(history.state, '', '#' + cur); if (depth < 1) history.pushState({ hanta: ++depth }, ''); } catch (e) {} }, 0); });
 })();
@@ -1329,12 +1329,14 @@ setInterval(() => { if (cur === 'f-news-post') fanRender(); }, 60000);
 
 let scale = 1;
 let baseW = 0, baseH = 0;
+/* 키보드가 뜨는 '글자 입력칸'만 (체크박스·라디오 등은 제외 → 하트 누를 때 화면이 올라가던 문제) */
+function isTF(e) { if (!e || !e.tagName) return false; if (e.tagName === 'TEXTAREA' || e.isContentEditable) return true; if (e.tagName !== 'INPUT') return false; return /^(text|search|email|number|tel|url|password|)$/.test((e.getAttribute('type') || '').toLowerCase()); }
 let VKH = 0, kbSeen = false;
 /* 안드로이드 크롬: 키보드 실제 높이/열림·닫힘을 VirtualKeyboard API로 정확히 받음 */
 try { if (navigator.virtualKeyboard) { navigator.virtualKeyboard.overlaysContent = true; navigator.virtualKeyboard.addEventListener('geometrychange', (e) => { VKH = Math.round(e.target.boundingRect.height || 0); fit(); }); } } catch (e) {}
-addEventListener('focusin', () => { kbSeen = false; }, true);
+addEventListener('focusin', (e) => { if (isTF(e.target)) kbSeen = false; }, true);
 /* 입력 중 화면이 올라가 있을 때 입력칸 밖을 누르면 키보드 닫고 원위치 (어떤 이유로든 멈춘 상태 탈출) */
-addEventListener('pointerdown', (e) => { const ae = document.activeElement; if (!ae || !/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return; const t = e.target; if (t === ae || (t.closest && t.closest('form,[data-mysay],button[type=submit]') && t.closest('form,[data-mysay]') === ae.closest('form,[data-mysay]'))) return; const app = document.querySelector('.app'); if (app && app.style.transform) { ae.blur(); app.style.transform = ''; } }, true);
+addEventListener('pointerdown', (e) => { const ae = document.activeElement; if (!ae || !isTF(ae)) return; const t = e.target; if (t === ae || (t.closest && t.closest('form,[data-mysay],button[type=submit]') && t.closest('form,[data-mysay]') === ae.closest('form,[data-mysay]'))) return; const app = document.querySelector('.app'); if (app && app.style.transform) { ae.blur(); app.style.transform = ''; } }, true);
 function fit() {
   const narrow = innerWidth <= 720;
   const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
@@ -1355,8 +1357,8 @@ function fit() {
     // 키보드가 열려 있으면 포커스된 입력칸이 키보드 위에 보이도록 전체를 위로 이동
     const app = document.querySelector('.app'), ae = document.activeElement, kb = Math.max(baseH - vvh, VKH);
     /* 키보드가 한 번 올라왔다가 (입력칸 포커스는 그대로인 채) 기기 '키보드 내리기'로 닫히면 → 입력칸을 놓고 화면 원위치 */
-    if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { if (kb >= 140) kbSeen = true; else if (kbSeen) { kbSeen = false; try { ae.blur(); } catch (e) {} app.style.transition = 'transform .22s ease'; app.style.transform = ''; } }
-    if (ae && ae === document.activeElement && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
+    if (ae && isTF(ae)) { if (kb >= 140) kbSeen = true; else if (kbSeen) { kbSeen = false; try { ae.blur(); } catch (e) {} app.style.transition = 'transform .22s ease'; app.style.transform = ''; } }
+    if (ae && ae === document.activeElement && isTF(ae)) {
       /* 현재 이동량을 포함해 원래 위치를 역산 → 목표가 달라질 때만 한 번에 이동 (띠용 방지) */
       let curY = 0; try { const t = getComputedStyle(app).transform; if (t && t !== 'none') curY = new DOMMatrix(t).m42; } catch (e) {}
       const r = ae.getBoundingClientRect();
@@ -1681,7 +1683,7 @@ if (window.visualViewport) { visualViewport.addEventListener('resize', fit); vis
 setInterval(function () {
   if (innerWidth > 720) return;
   const ae = document.activeElement;
-  if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { const v = (window.visualViewport && visualViewport.height) || innerHeight; if (kbSeen && Math.max(baseH - v, VKH) < 140) fit(); return; } /* 키보드만 닫히고 포커스가 남은 경우 복구 */
+  if (ae && isTF(ae)) { const v = (window.visualViewport && visualViewport.height) || innerHeight; if (kbSeen && Math.max(baseH - v, VKH) < 140) fit(); return; } /* 키보드만 닫히고 포커스가 남은 경우 복구 */
   const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
   let topOff = 0;
   try { topOff = Math.max(0, Math.round(document.querySelector('.app').getBoundingClientRect().top - (window.visualViewport ? visualViewport.offsetTop : 0))); } catch (e) {}
@@ -1795,7 +1797,7 @@ document.querySelectorAll('[data-gmstrip]').forEach((strip) => {
   layer.querySelectorAll('[data-gmc]').forEach((c) => c.addEventListener('click', () => { if (!c._d) return; sel = new Date(vY, vM, c._d); setOpen(false); }));
   paint();
 });
-addEventListener('resize', fit); addEventListener('focusout', function(){ setTimeout(fit, 80); }); addEventListener('focusin', function(){ if(innerWidth<=720){ fit(); setTimeout(function(){scrollTo(0,0);fit()},80); setTimeout(function(){scrollTo(0,0);fit()},350); setTimeout(fit,750);} }); fit();
+addEventListener('resize', fit); addEventListener('focusout', function(){ setTimeout(fit, 80); }); addEventListener('focusin', function(e){ if(innerWidth<=720 && isTF(e.target)){ fit(); setTimeout(function(){scrollTo(0,0);fit()},80); setTimeout(function(){scrollTo(0,0);fit()},350); setTimeout(fit,750);} }); fit();
 const start = location.hash.slice(1);
 if (start && el(start)) { stack = (M.JSTACK[start] || []).slice(); sideSec = M.SEC[start]; show(start); } else { sideSec = 'splash'; show('launch'); }
 renderList();
