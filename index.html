@@ -1989,10 +1989,7 @@ document.addEventListener('input',function(e){var i=e.target;if(i&&i.dataset&&i.
   window.addEventListener('pointermove',function(e){if(!down)return;var dx=e.clientX-sx;if(Math.abs(dx)>5)moved=true;if(!moved)return;var now=performance.now();vx=(lastX-e.clientX)/Math.max(1,now-lastT);lastX=e.clientX;lastT=now;sc.scrollLeft=sl-dx});
   window.addEventListener('pointerup',function(){if(!down)return;down=false;sc.style.cursor='grab';if(moved)snap(vx);else sc.style.scrollSnapType='x mandatory'});
   window.addEventListener('click',function(e){if(moved&&sc.contains(e.target)){e.stopPropagation();e.preventDefault();moved=false}},true);
-  // 처음 들어오면 옆 카드가 있다는 걸 살짝 보여주는 모션
-  var nudged=false;
-  function nudge(){if(nudged)return;nudged=true;setTimeout(function(){if(scr.hidden||sc.scrollLeft>0)return;sc.style.scrollSnapType='none';sc.scrollTo({left:56,behavior:'smooth'});setTimeout(function(){sc.scrollTo({left:0,behavior:'smooth'});setTimeout(function(){sc.style.scrollSnapType='x mandatory'},500)},650)},700)}
-  new MutationObserver(function(){if(scr.hidden)nudged=false;else nudge()}).observe(scr,{attributes:true,attributeFilter:['hidden']});
+  // (화면 전환 때마다 카드가 들썩이던 '옆 카드 미리보기' 모션은 제거)
  }
  setup('s-my',303,200,313);setup('s-all',303,200,313);setup('s-f-comm',320,165,330);
 })();
