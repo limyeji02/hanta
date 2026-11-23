@@ -20,7 +20,8 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <script>if('serviceWorker' in navigator&&window.isSecureContext){addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}</script>
-<style>.nw-c{transition:transform .22s cubic-bezier(.34,1.56,.64,1);-webkit-tap-highlight-color:transparent;user-select:none}
+<style>*,*::before,*::after{-webkit-tap-highlight-color:transparent!important}button:focus,button:focus-visible,[data-nav]:focus,.hot:focus{outline:none}
+.nw-c{transition:transform .22s cubic-bezier(.34,1.56,.64,1);-webkit-tap-highlight-color:transparent;user-select:none}
 @font-face{font-family:'Pretendard';font-weight:100;font-style:normal;font-display:swap;src:url(Pretendard-Thin.woff) format('woff')}
 @font-face{font-family:'Pretendard';font-weight:200;font-style:normal;font-display:swap;src:url(Pretendard-ExtraLight.woff) format('woff')}
 @font-face{font-family:'Pretendard';font-weight:300;font-style:normal;font-display:swap;src:url(Pretendard-Light.woff) format('woff')}
@@ -723,6 +724,15 @@ function go(target, mode) {
   show(target, mode === 'push' ? 'push' : 'side');
 }
 function back() { const p = stack.pop(); if (p) show(p, 'back'); }
+// 안드로이드 시스템 뒤로가기(가장자리 스와이프/뒤로 버튼) → 앱을 닫지 않고 앱 안에서 한 단계 뒤로 (첫 화면에서는 그대로 머묾)
+(function () { let depth = 0;
+  const arm = () => { try { while (depth < 2) history.pushState({ hanta: ++depth }, ''); } catch (e) {} };
+  ['click', 'touchend', 'keydown'].forEach((ev) => addEventListener(ev, arm, true));
+  addEventListener('popstate', () => { window.__popT = Date.now(); depth = Math.max(0, depth - 1);
+    const ae = document.activeElement; if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { try { ae.blur(); } catch (e) {} const app = document.querySelector('.app'); if (app) app.style.transform = ''; }
+    if (!busy && stack.length) { try { back(); } catch (e) {} }
+    setTimeout(() => { try { history.replaceState(history.state, '', '#' + cur); if (depth < 1) history.pushState({ hanta: ++depth }, ''); } catch (e) {} }, 0); });
+})();
 window.__jump = (id) => jump(id); window.__go = (id, m) => go(id, m); window.__fit = (s) => fitScreen(s); window.__dk = (s) => darkify(s);
 document.addEventListener('click', (e) => { const sc = e.target.closest && e.target.closest('#s-intro'); if (!sc || e.target.closest('[data-goto]')) return; (() => { const r = document.getElementById('s-intro'); if (!r) return; const an = r.getAnimations({ subtree: true }); const ref = an.find((a) => a.animationName === 'isk-slide'); if (!ref) return; const ct = Number(ref.currentTime) || 0; const base = Math.floor(ct / 18000) * 18000; const off = ct - base; const idx = Math.floor(off / 6000); if (off - idx * 6000 >= 5400) return; const t = base + idx * 6000 + 5490; an.forEach((a) => { try { a.currentTime = t; } catch (e) {} }); })(); });
 function jump(id) { if (id === cur) return; stack = (M.JSTACK[id] || []).slice(); sideSec = M.SEC[id]; document.querySelectorAll('.scr').forEach((s) => { if (s.dataset.id !== cur) s.hidden = true; }); busy = false; show(id, 'fade'); renderList(); }
@@ -748,7 +758,7 @@ document.querySelectorAll('.sec').forEach((b) => b.addEventListener('click', () 
 document.getElementById('restart').addEventListener('click', () => { pipKill(); stack = []; document.querySelectorAll('.scr').forEach((s) => s.hidden = true); cur = null; busy = false; sideSec = 'splash'; show('launch'); renderList(); setCard(0); srtK = 'name'; applySort(); Object.assign(F, { remain: 12400, spent: 0, raised: 245000, nf: 0, sf: 0, pf: 0, cf: 0, cs: 0, clOn: false }); ppReset(); });
 const sh = document.getElementById('showhot');
 try { sh.checked = localStorage.getItem('showhot') === '1'; } catch (e) {}
-const applyHot = () => { phone.classList.toggle('show-hot', sh.checked); try { localStorage.setItem('showhot', sh.checked ? '1' : '0'); } catch (e) {} };
+const applyHot = () => { phone.classList.toggle('show-hot', sh.checked && innerWidth > 720); try { localStorage.setItem('showhot', sh.checked ? '1' : '0'); } catch (e) {} };
 sh.addEventListener('change', applyHot); applyHot();
 
 // hide the bottom bar while scrolling down, bring it back on scroll up
@@ -1192,7 +1202,7 @@ document.querySelectorAll('[data-glswipe]').forEach((r) => { let w = null; const
   const hScroll = (t, S) => { for (let x = t; x && x !== S; x = x.parentElement) { if (x.scrollWidth > x.clientWidth + 2 && x.scrollLeft > 1) { const o = getComputedStyle(x).overflowX; if (o === 'auto' || o === 'scroll') return true; } } return false; };
   const set = (dx, tr) => { const S = w.S, P = w.P; S.style.transition = tr; S.style.transform = dx ? 'translateX(' + dx + 'px)' : ''; S.style.boxShadow = dx ? '-8px 0 24px rgba(0,0,0,.25)' : '';
     if (P) { P.style.transition = tr; P.style.transform = 'translateX(' + (-90 + dx * 90 / 375) + 'px)'; P.style.filter = 'brightness(' + (0.7 + 0.3 * dx / 375) + ')'; } };
-  const start = (x, y, t) => { w = null; if (busy || !stack.length) return; const S = el(cur); if (!S || S.hidden || S.querySelector('[data-glswipe]') || S.hasAttribute('data-glswipe') || isSheet(cur) || cur === 'story' || cur === 'g-result') return;
+  const start = (x, y, t) => { w = null; if (busy || !stack.length) return; if ((x - phone.getBoundingClientRect().left) / scale < 22) return; /* 화면 맨 가장자리는 기기 뒤로가기 제스처 영역 → 중복 뒤로가기 방지 */ const S = el(cur); if (!S || S.hidden || S.querySelector('[data-glswipe]') || S.hasAttribute('data-glswipe') || isSheet(cur) || cur === 'story' || cur === 'g-result') return;
     if (t && t.closest && t.closest('input,textarea,select,[contenteditable],[data-psheet],[data-noswipe]')) return; if (hScroll(t, S) || !hasBack(S)) return;
     w = { S, x, y, on: false, dx: 0, t: Date.now(), lx: x, vx: 0 }; };
   const move = (x, y, ev) => { if (!w) return; const dx = (x - w.x) / scale, dy = (y - w.y) / scale;
@@ -1319,6 +1329,12 @@ setInterval(() => { if (cur === 'f-news-post') fanRender(); }, 60000);
 
 let scale = 1;
 let baseW = 0, baseH = 0;
+let VKH = 0, kbSeen = false;
+/* 안드로이드 크롬: 키보드 실제 높이/열림·닫힘을 VirtualKeyboard API로 정확히 받음 */
+try { if (navigator.virtualKeyboard) { navigator.virtualKeyboard.overlaysContent = true; navigator.virtualKeyboard.addEventListener('geometrychange', (e) => { VKH = Math.round(e.target.boundingRect.height || 0); fit(); }); } } catch (e) {}
+addEventListener('focusin', () => { kbSeen = false; }, true);
+/* 입력 중 화면이 올라가 있을 때 입력칸 밖을 누르면 키보드 닫고 원위치 (어떤 이유로든 멈춘 상태 탈출) */
+addEventListener('pointerdown', (e) => { const ae = document.activeElement; if (!ae || !/^(INPUT|TEXTAREA)$/.test(ae.tagName)) return; const t = e.target; if (t === ae || (t.closest && t.closest('form,[data-mysay],button[type=submit]') && t.closest('form,[data-mysay]') === ae.closest('form,[data-mysay]'))) return; const app = document.querySelector('.app'); if (app && app.style.transform) { ae.blur(); app.style.transform = ''; } }, true);
 function fit() {
   const narrow = innerWidth <= 720;
   const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
@@ -1337,13 +1353,15 @@ function fit() {
     } catch (e) { topOff = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0; }
     vh = baseH - topOff; /* 키보드로 줄어든 높이(>=140px)는 무시: 화면 고정 */
     // 키보드가 열려 있으면 포커스된 입력칸이 키보드 위에 보이도록 전체를 위로 이동
-    const app = document.querySelector('.app'), ae = document.activeElement, kb = baseH - vvh;
-    if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
+    const app = document.querySelector('.app'), ae = document.activeElement, kb = Math.max(baseH - vvh, VKH);
+    /* 키보드가 한 번 올라왔다가 (입력칸 포커스는 그대로인 채) 기기 '키보드 내리기'로 닫히면 → 입력칸을 놓고 화면 원위치 */
+    if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { if (kb >= 140) kbSeen = true; else if (kbSeen) { kbSeen = false; try { ae.blur(); } catch (e) {} app.style.transition = 'transform .22s ease'; app.style.transform = ''; } }
+    if (ae && ae === document.activeElement && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) {
       /* 현재 이동량을 포함해 원래 위치를 역산 → 목표가 달라질 때만 한 번에 이동 (띠용 방지) */
       let curY = 0; try { const t = getComputedStyle(app).transform; if (t && t !== 'none') curY = new DOMMatrix(t).m42; } catch (e) {}
       const r = ae.getBoundingClientRect();
       const trueBottom = r.bottom - curY;
-      const limit = kb >= 140 ? (vvh - 16) : Math.round(vvh * 0.5);
+      const limit = VKH >= 140 ? (vvh - VKH - 16) : kb >= 140 ? (vvh - 16) : Math.round(vvh * 0.5);
       const lift = Math.max(0, Math.ceil(trueBottom - limit));
       if (Math.abs(lift + curY) > 3 || (lift === 0 && curY !== 0)) {
         app.style.transition = 'transform .22s ease';
@@ -1663,7 +1681,7 @@ if (window.visualViewport) { visualViewport.addEventListener('resize', fit); vis
 setInterval(function () {
   if (innerWidth > 720) return;
   const ae = document.activeElement;
-  if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) return;
+  if (ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName)) { const v = (window.visualViewport && visualViewport.height) || innerHeight; if (kbSeen && Math.max(baseH - v, VKH) < 140) fit(); return; } /* 키보드만 닫히고 포커스가 남은 경우 복구 */
   const vvh = (window.visualViewport && visualViewport.height) || innerHeight;
   let topOff = 0;
   try { topOff = Math.max(0, Math.round(document.querySelector('.app').getBoundingClientRect().top - (window.visualViewport ? visualViewport.offsetTop : 0))); } catch (e) {}
@@ -1781,7 +1799,7 @@ addEventListener('resize', fit); addEventListener('focusout', function(){ setTim
 const start = location.hash.slice(1);
 if (start && el(start)) { stack = (M.JSTACK[start] || []).slice(); sideSec = M.SEC[start]; show(start); } else { sideSec = 'splash'; show('launch'); }
 renderList();
-addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h && h !== cur && el(h)) jump(h); });
+addEventListener('hashchange', () => { if (Date.now() - (window.__popT || 0) < 600) { try { history.replaceState(history.state, '', '#' + cur); } catch (e) {} return; } const h = location.hash.slice(1); if (h && h !== cur && el(h)) jump(h); });
 })();
 
 // ---- 홈 오늘의 퀴즈: 선택 → 정답/오답 모달 → 완료 상태, 화면 나갔다 오면 초기화
